@@ -27,17 +27,21 @@ All preprocessing notebooks z-score Age and the target, and save the scaling par
 
 `QuantileMLP`: a Multi-Layer Perceptron with a shared backbone and three outputs, the 10th, 50th and 90th percentiles.
 
-**Non-crossing quantiles.** If each percentile is predicted independently, the network can end up with $q_{10}$ larger than $q_{50}$ (quantile crossing), which is not possible. To avoid it, the model predicts the median and two distances, made positive with Softplus:
+**Non-crossing quantiles.** If each percentile is predicted independently, the network can end up with $`q_{10}`$ larger than $`q_{50}`$ (quantile crossing), which is not possible. To avoid it, the model predicts the median and two distances, made positive with Softplus:
 
-$$\hat{y}_{10} = \hat{y}_{50} - \text{Softplus}(\Delta_{10}) \qquad \hat{y}_{90} = \hat{y}_{50} + \text{Softplus}(\Delta_{90})$$
+```math
+\hat{y}_{10} = \hat{y}_{50} - \text{Softplus}(\Delta_{10}) \qquad \hat{y}_{90} = \hat{y}_{50} + \text{Softplus}(\Delta_{90})
+```
 
-where $\text{Softplus}(x) = \log(1 + e^x)$ is always positive, so $\hat{y}_{10} \le \hat{y}_{50} \le \hat{y}_{90}$ always.
+where $`\text{Softplus}(x) = \log(1 + e^x)`$ is always positive, so $`\hat{y}_{10} \le \hat{y}_{50} \le \hat{y}_{90}`$ always.
 
-**Pinball loss.** Each output learns its percentile with the pinball (quantile) loss, for a quantile $\tau$ and error $u = y - \hat{y}_{\tau}$:
+**Pinball loss.** Each output learns its percentile with the pinball (quantile) loss, for a quantile $`\tau`$ and error $`u = y - \hat{y}_{\tau}`$:
 
-$$L_{\tau}(u) = \max(\tau \, u, \; (\tau - 1) \, u)$$
+```math
+L_{\tau}(u) = \max\big(\tau \cdot u, \;\; (\tau - 1) \cdot u\big)
+```
 
-For $q_{10}$, predicting too high costs 9 times more than too low, so about 10% of the subjects end up below it (and the same idea for $q_{50}$ and $q_{90}$).
+For $`q_{10}`$, predicting too high costs 9 times more than too low, so about 10% of the subjects end up below it (and the same idea for $`q_{50}`$ and $`q_{90}`$).
 
 **Training.** 70/15/15 train/validation/test split, the model with the lowest validation loss is kept. The model is compared with a baseline that ignores the inputs (same percentiles for everyone), and checked with the test set calibration (% of subjects below each percentile).
 
